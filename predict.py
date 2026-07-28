@@ -1,32 +1,41 @@
-import joblib
-import numpy as np
-from utils import extract_features
-
-model = joblib.load("models/emotion_model.pkl")
-encoder = joblib.load("models/label_encoder.pkl")
-scaler = joblib.load("models/scaler.pkl")
-
+import time
 
 def predict_emotion(audio_path):
-    print("Predicting:", audio_path)
-    try:
-        feature = extract_features(audio_path)
-        feature = np.array(feature).reshape(1, -1)
-        feature = scaler.transform(feature)
 
-        prediction = model.predict(feature)[0]
-        probabilities = model.predict_proba(feature)[0]
+    print("Loading:", audio_path)
 
-        confidence = np.max(probabilities) * 100
-        emotion = encoder.inverse_transform([prediction])[0]
+    start = time.time()
 
-        probability_dict = {
-            emotion: float(prob)
-            for emotion, prob in zip(encoder.classes_, probabilities)
-        }
-        print(probability_dict)
+    feature = extract_features(audio_path)
 
-        return emotion, confidence, probability_dict
+    print("Feature extraction took:",
+          time.time() - start)
 
-    except Exception as e:
-        raise RuntimeError(f"Prediction failed: {e}")
+    start = time.time()
+
+    feature = np.array(feature).reshape(1, -1)
+
+    feature = scaler.transform(feature)
+
+    print("Scaling took:",
+          time.time() - start)
+
+    start = time.time()
+
+    prediction = model.predict(feature)[0]
+
+    print("Prediction took:",
+          time.time() - start)
+
+    probabilities = model.predict_proba(feature)[0]
+
+    confidence = np.max(probabilities) * 100
+
+    emotion = encoder.inverse_transform([prediction])[0]
+
+    probability_dict = {
+        emotion: float(prob)
+        for emotion, prob in zip(encoder.classes_, probabilities)
+    }
+
+    return emotion, confidence, probability_dict
