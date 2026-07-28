@@ -14,17 +14,22 @@ _SCALER = None
 def _load_artifacts():
     global _MODEL_SVM, _MODEL_RF, _LABEL_ENCODER, _SCALER
 
-    if _LABEL_ENCODER is None and os.path.exists(LABEL_ENCODER_PATH):
-        _LABEL_ENCODER = joblib.load(LABEL_ENCODER_PATH)
+    encoder_p = str(LABEL_ENCODER_PATH)
+    scaler_p = str(SCALER_PATH)
+    model_p = str(MODEL_PATH)
+    model_rf_p = str(MODEL_RF_PATH)
 
-    if _SCALER is None and os.path.exists(SCALER_PATH):
-        _SCALER = joblib.load(SCALER_PATH)
+    if _LABEL_ENCODER is None and os.path.exists(encoder_p):
+        _LABEL_ENCODER = joblib.load(encoder_p)
 
-    if _MODEL_SVM is None and os.path.exists(MODEL_PATH):
-        _MODEL_SVM = joblib.load(MODEL_PATH)
+    if _SCALER is None and os.path.exists(scaler_p):
+        _SCALER = joblib.load(scaler_p)
 
-    if _MODEL_RF is None and os.path.exists(MODEL_RF_PATH):
-        _MODEL_RF = joblib.load(MODEL_RF_PATH)
+    if _MODEL_SVM is None and os.path.exists(model_p):
+        _MODEL_SVM = joblib.load(model_p)
+
+    if _MODEL_RF is None and os.path.exists(model_rf_p):
+        _MODEL_RF = joblib.load(model_rf_p)
 
 
 def predict_emotion(audio_path, model_type="svm"):
