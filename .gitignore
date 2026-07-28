@@ -2,12 +2,9 @@ venv/
 __pycache__/
 *.pyc
 
+dataset/
+history/
 recordings/
-history/session.csv
-
-.ipynb_checkpoints/
-
-archive (12)/
 temp/
-
-*.log
+archive*/
+features/
