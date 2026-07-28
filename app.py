@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import pandas as pd
 import numpy as np
@@ -6,6 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from datetime import datetime
+import warnings
+warnings.filterwarnings("ignore")
 
 from config import (
     MODEL_PATH, METADATA_PATH, HISTORY_FILE, RECORDING_PATH, TEMP_DIR,
@@ -22,11 +25,25 @@ except ImportError:
     HAS_AUDIO_RECORDER = False
 
 # -------------------------------------------------------
+# CLOUD-SAFE WRITABLE PATHS
+# On Streamlit Cloud the repo is read-only; use /tmp for user-generated files
+# -------------------------------------------------------
+IS_CLOUD = not os.path.isdir(".git")
+WRITABLE_BASE = "/tmp/emotion_app" if IS_CLOUD else "."
+RECORDINGS_DIR = os.path.join(WRITABLE_BASE, "recordings")
+HISTORY_DIR = os.path.join(WRITABLE_BASE, "history")
+HISTORY_CSV = os.path.join(HISTORY_DIR, "session.csv")
+
+os.makedirs(RECORDINGS_DIR, exist_ok=True)
+os.makedirs(HISTORY_DIR, exist_ok=True)
+os.makedirs(os.path.join(WRITABLE_BASE, "temp"), exist_ok=True)
+
+# -------------------------------------------------------
 # PAGE CONFIGURATION
 # -------------------------------------------------------
 st.set_page_config(
     page_title="Voice Emotion AI - SER Dashboard",
-    page_icon="🎙️",
+    page_icon="\U0001f399",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -37,16 +54,23 @@ if "audio_path" not in st.session_state:
 if "last_prediction" not in st.session_state:
     st.session_state.last_prediction = None
 
-# Ensure folders exist
-os.makedirs("recordings", exist_ok=True)
-os.makedirs("history", exist_ok=True)
-os.makedirs("temp", exist_ok=True)
+# -------------------------------------------------------
+# CHECK MODELS EXIST (show friendly error on Cloud if missing)
+# -------------------------------------------------------
+MODEL_OK = os.path.exists(str(MODEL_PATH))
+if not MODEL_OK:
+    st.error(
+        "**Trained model not found!**  \n"
+        "Please run `python train_model.py` locally and push the `models/` folder to GitHub "
+        "before deploying to Streamlit Cloud."
+    )
+    st.stop()
 
 # Helper function to read history CSV safely
 def load_history_safe():
-    if os.path.exists(HISTORY_FILE) and os.path.getsize(HISTORY_FILE) > 5:
+    if os.path.exists(HISTORY_CSV) and os.path.getsize(HISTORY_CSV) > 5:
         try:
-            df = pd.read_csv(HISTORY_FILE, on_bad_lines='skip')
+            df = pd.read_csv(HISTORY_CSV, on_bad_lines='skip')
             # Ensure expected columns
             expected_cols = ["Time", "Emotion", "Confidence", "Model"]
             for col in expected_cols:
@@ -308,7 +332,7 @@ with tab_predict:
                 type=["wav", "mp3", "ogg", "flac", "m4a"]
             )
             if uploaded_file is not None:
-                save_path = os.path.join("recordings", "upload.wav")
+                save_path = os.path.join(RECORDINGS_DIR, "upload.wav")
                 with open(save_path, "wb") as f:
                     f.write(uploaded_file.read())
                 st.session_state.audio_path = save_path
@@ -316,7 +340,7 @@ with tab_predict:
             if hasattr(st, "audio_input"):
                 recorded_audio = st.audio_input("Record your voice")
                 if recorded_audio is not None:
-                    save_path = os.path.join("recordings", "live_rec.wav")
+                    save_path = os.path.join(RECORDINGS_DIR, "live_rec.wav")
                     with open(save_path, "wb") as f:
                         f.write(recorded_audio.read())
                     st.session_state.audio_path = save_path
@@ -324,7 +348,7 @@ with tab_predict:
                 st.write("Click the microphone icon below to start recording:")
                 audio_bytes = audio_recorder(pause_threshold=2.5, sample_rate=22050)
                 if audio_bytes:
-                    save_path = os.path.join("recordings", "live_rec.wav")
+                    save_path = os.path.join(RECORDINGS_DIR, "live_rec.wav")
                     with open(save_path, "wb") as f:
                         f.write(audio_bytes)
                     st.session_state.audio_path = save_path
@@ -363,12 +387,12 @@ with tab_predict:
                             "Model": [selected_model_type.upper()]
                         }
                         df_new = pd.DataFrame(hist_data)
-                        if os.path.exists(HISTORY_FILE):
+                        if os.path.exists(HISTORY_CSV):
                             df_existing = load_history_safe()
                             df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-                            df_combined.to_csv(HISTORY_FILE, index=False)
+                            df_combined.to_csv(HISTORY_CSV, index=False)
                         else:
-                            df_new.to_csv(HISTORY_FILE, index=False)
+                            df_new.to_csv(HISTORY_CSV, index=False)
 
                     except Exception as e:
                         st.error(f"Prediction Error: {e}")
