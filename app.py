@@ -164,7 +164,7 @@ tab1, tab2 = st.tabs(
 "📁 Upload Audio",
 "🎙 Record Voice"
 ]
-
+)
 
 # -------------------------------------------------------
 # UPLOAD
@@ -242,9 +242,7 @@ if st.session_state.audio_path:
 
         try:
 
-            emotion, confidence, prob = predict_emotion(
-                st.session_state.audio_path
-)
+            emotion, confidence, prob = predict_emotion(st.session_state.audio_path)
 
         except Exception as e:
 
