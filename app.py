@@ -16,7 +16,8 @@ st.set_page_config(
     page_icon="🎤",
     layout="wide"
 )
-
+if "audio_path" not in st.session_state:
+    st.session_state.audio_path = None
 # -------------------------------------------------------
 # CREATE FOLDERS
 # -------------------------------------------------------
@@ -163,9 +164,7 @@ tab1, tab2 = st.tabs(
 "📁 Upload Audio",
 "🎙 Record Voice"
 ]
-)
 
-audio_path = None
 
 # -------------------------------------------------------
 # UPLOAD
@@ -184,12 +183,12 @@ with tab1:
 
     if uploaded:
 
-        audio_path = "recordings/upload.wav"
+        st.session_state.audio_path = "recordings/upload.wav"
 
-        with open(audio_path, "wb") as f:
+        with open(st.session_state.audio_path, "wb") as f:
             f.write(uploaded.read())
 
-        st.audio(audio_path)
+        st.audio(st.session_state.audio_path)
 
         st.success("Audio uploaded successfully.")
 
@@ -212,12 +211,12 @@ with tab2:
 
     if audio_bytes:
 
-        audio_path = "recordings/live.wav"
+        st.session_state.audio_path = "recordings/live.wav"
 
-        with open(audio_path, "wb") as f:
+        with open(st.session_state.audio_path, "wb") as f:
             f.write(audio_bytes)
 
-        st.audio(audio_path)
+        st.audio(st.session_state.audio_path)
 
         st.success("Recording saved successfully.")
 
@@ -226,7 +225,7 @@ with tab2:
 # PREDICT BUTTON
 # -------------------------------------------------------
 
-if audio_path:
+if st.session_state.audio_path:
 
     st.write("")
 
@@ -243,7 +242,9 @@ if audio_path:
 
         try:
 
-            emotion, confidence, prob = predict_emotion(audio_path)
+            emotion, confidence, prob = predict_emotion(
+                st.session_state.audio_path
+)
 
         except Exception as e:
 
