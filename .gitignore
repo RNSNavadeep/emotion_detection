@@ -1,10 +1,31 @@
+# Virtual Environment
 venv/
-__pycache__/
-*.pyc
+env/
+.venv/
+ENV/
 
+# Python Cache & Byte-code
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Large Audio Datasets & Raw Extractions
 dataset/
-features/
-history/
-recordings/
-temp/
 archive*/
+
+# Temporary Audio Files & User Recordings
+recordings/*
+!recordings/.gitkeep
+temp/*
+!temp/.gitkeep
+
+# IDE & OS Specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Streamlit Local Settings
+.streamlit/secrets.toml

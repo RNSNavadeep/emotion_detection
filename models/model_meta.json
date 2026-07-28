@@ -1,0 +1,19 @@
+{
+    "train_date": "2026-07-28 10:33:58",
+    "total_samples": 1440,
+    "features_count": 378,
+    "svm_accuracy": 72.57,
+    "svm_f1": 72.21,
+    "rf_accuracy": 56.6,
+    "rf_f1": 54.93,
+    "classes": [
+        "angry",
+        "calm",
+        "disgust",
+        "fearful",
+        "happy",
+        "neutral",
+        "sad",
+        "surprised"
+    ]
+}
